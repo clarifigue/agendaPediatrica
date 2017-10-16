@@ -3,6 +3,7 @@ package com.google.samples.quickstart.signin;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -33,7 +34,12 @@ public class SignInActivity extends AppCompatActivity implements
 
     private static final String TAG = "SignInActivity";
 
-    public String host = "http://10.13.15.43:8080";
+    public String host = "http://192.168.0.19:8080";
+
+    static{
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+    }
 
     public static int getRcSignIn() {
         return RC_SIGN_IN;
@@ -138,8 +144,19 @@ public class SignInActivity extends AppCompatActivity implements
     }
     // [END onActivityResult]
 
-    // [START handleSignInResult]
+
+    //[START handleSignInResult]
+
     private void handleSignInResult(GoogleSignInResult result) {
+
+        if (result.isSuccess()) {
+            goMainScreen(result);
+        } else {
+            Toast.makeText(this, "No se pudo iniciar la sesion", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /*private void handleSignInResult(GoogleSignInResult result) {
         Log.d(TAG, "handleSignInResult:" + result.isSuccess());
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
@@ -147,12 +164,12 @@ public class SignInActivity extends AppCompatActivity implements
             mStatusTextView.setText(getString(R.string.signed_in_fmt, acct.getDisplayName()));
             emailTextView.setText(acct.getEmail());
             updateUI(true);
-            goMainScreen(result);
+            //goMainScreen(result);
         } else {
             // Signed out, show unauthenticated UI.
             updateUI(false);
         }
-    }
+    }*/
     // [END handleSignInResult]
 
     // [START signIn]
@@ -286,7 +303,7 @@ public class SignInActivity extends AppCompatActivity implements
         try {
             String idUsuario = reader.getString("idUsuario");
 
-            Intent intent = new Intent(this, SignInActivity.class);
+            Intent intent = new Intent(this, HijosActivity.class);
             intent.putExtra("idUsuario", idUsuario);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);

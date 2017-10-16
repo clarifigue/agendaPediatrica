@@ -20,7 +20,7 @@ import java.net.URL;
 
 public class HttpHandler {
 
-    private String HOST = "http://10.13.15.43:8080";
+    private String HOST = "http://192.168.0.19:8080";
 
     private static final String TAG = HttpHandler.class.getSimpleName();
 
@@ -141,7 +141,4 @@ public class HttpHandler {
 
         return jsonObject;
     }
-
-
-
 }
