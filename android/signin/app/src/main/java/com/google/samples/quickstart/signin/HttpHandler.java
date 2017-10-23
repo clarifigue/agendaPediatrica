@@ -20,7 +20,7 @@ import java.net.URL;
 
 public class HttpHandler {
 
-    private String HOST = "http://192.168.0.19:8080";
+    private String HOST = "http://192.168.1.5:8084";
 
     private static final String TAG = HttpHandler.class.getSimpleName();
 

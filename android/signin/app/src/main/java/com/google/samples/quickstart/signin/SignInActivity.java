@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.util.StringBuilderPrinter;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,9 +21,23 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.JsonParser;
+import com.google.api.client.json.JsonToken;
+import com.google.api.client.util.IOUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  * Activity to demonstrate basic retrieval of the Google user's ID, email address, and basic
@@ -34,7 +49,7 @@ public class SignInActivity extends AppCompatActivity implements
 
     private static final String TAG = "SignInActivity";
 
-    public String host = "http://192.168.0.19:8080";
+    public String host = "http://192.168.1.5:8084";
 
     static{
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -57,7 +72,6 @@ public class SignInActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         // Views
         mStatusTextView = findViewById(R.id.status);
         emailTextView = findViewById(R.id.email);
@@ -139,6 +153,7 @@ public class SignInActivity extends AppCompatActivity implements
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            System.out.println("############################# " + result.getStatus() + " SUCCESS " +result.isSuccess());
             handleSignInResult(result);
         }
     }
@@ -269,46 +284,52 @@ public class SignInActivity extends AppCompatActivity implements
 
     private void goMainScreen(GoogleSignInResult result) {
 
-        GoogleSignInAccount account = result.getSignInAccount();
+        try{
 
-        HttpHandler nuevo = new HttpHandler();
+            GoogleSignInAccount account = result.getSignInAccount();
 
-        JSONObject obj = new JSONObject();
-        try {
-            obj.put("email", account.getEmail());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+            //HttpHandler nuevo = new HttpHandler();
 
-        //Toast.makeText(this, nuevo.sendHTTPData("http://10.9.100.164:8080/WebApplication3/webresources/usuario/validarUsuario/",obj).toString(), Toast.LENGTH_SHORT).show();
+            //JSONObject obj = new JSONObject();
+            //obj.put("email", account.getEmail());
 
-        String in = nuevo.sendHTTPData(this.host+"/WebApplication1/webresources/usuario/validarUsuario/",obj);
-
-        JSONObject reader = null;
-        try {
-            reader = new JSONObject(in);
-
-            //JSONObject main  = reader.getJSONObject("main");
-            String valido = reader.getString("valido");
-
-            if (valido == "false") {
-                Toast.makeText(this, "Usuario invalido", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, nuevo.sendHTTPData("http://10.9.100.164:8080/WebApplication3/webresources/usuario/validarUsuario/",obj).toString(), Toast.LENGTH_SHORT).show();
+            URL ob = new URL(this.host+"/WebApplication1/webresources/usuario/validarUsuario/");
+            HttpURLConnection con = (HttpURLConnection) ob.openConnection();
+            con.setRequestMethod("POST");
+            con.setRequestProperty("Content-Type", "application/json");
+            con.setDoInput(true);
+            con.setDoOutput(true);
+            String str =  account.getEmail(); //"{\"email\": \"" + account.getEmail() + "\"}";
+            byte[] outputInBytes = str.getBytes("UTF-8");
+            OutputStream os = con.getOutputStream();
+            os.write(outputInBytes);
+            int codigo = con.getResponseCode();
+            InputStream is = con.getInputStream();
+            //String in = nuevo.sendHTTPData(this.host+"/WebApplication1/webresources/usuario/validarUsuario/",obj);
+            //;
+            //reader = new JSONObject(in);
+            System.out.println("######## ATENCIÓN, código de respuesta HTTP: " +codigo);
+            //if (valido == "false") {
+            if (codigo != 200){
+                Toast.makeText(this, "Usuario no encontrado", Toast.LENGTH_SHORT).show();
                 return;
             }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            String idUsuario = reader.getString("idUsuario");
-
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader br = new BufferedReader(isr);
+            StringBuilder sb = new StringBuilder();
+            String aux;
+            while ((aux = br.readLine()) != null){
+                sb.append(aux);
+            }
+            String idUsuario = sb.toString();
+            System.out.println("### ATENCIÓN, el idUsuario es: " +idUsuario);
             Intent intent = new Intent(this, HijosActivity.class);
             intent.putExtra("idUsuario", idUsuario);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
 
-        } catch (JSONException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

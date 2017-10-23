@@ -33,7 +33,7 @@ public class HijosActivity extends AppCompatActivity {
         this.idUsuario = idUsuario;
     }
 
-    private static String url = "http://192.168.0.19:8080";
+    private static String url = "http://192.168.1.5:8084";
 
 
 
@@ -60,7 +60,7 @@ public class HijosActivity extends AppCompatActivity {
 
     private class obtenerHijos extends AsyncTask<Void, Void, Void> {
 
-        public String host = "http://192.168.0.19:8080";
+        public String host = "http://192.168.1.5:8084";
 
         @Override
         protected void onPreExecute() {
@@ -169,7 +169,12 @@ public class HijosActivity extends AppCompatActivity {
                     "mobile"}, new int[]{R.id.name,
                     R.id.email, R.id.mobile});
 
-            lv.setAdapter(adapter);
+         try {
+             lv.setAdapter(adapter);
+         } catch (Exception e) {
+
+         }
+
         }
 
     }
