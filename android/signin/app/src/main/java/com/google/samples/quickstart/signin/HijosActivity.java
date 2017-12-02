@@ -1,10 +1,15 @@
 package com.google.samples.quickstart.signin;
 
+import android.app.NotificationManager;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -14,8 +19,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import static android.provider.AlarmClock.EXTRA_MESSAGE;
 
 public class HijosActivity extends AppCompatActivity {
 
@@ -33,7 +47,7 @@ public class HijosActivity extends AppCompatActivity {
         this.idUsuario = idUsuario;
     }
 
-    private static String url = "http://192.168.0.19:8080";
+    private static String url = "http://192.168.0.10:8084";
 
 
 
@@ -54,13 +68,54 @@ public class HijosActivity extends AppCompatActivity {
 
         this.setIdUsuario(getIntent().getExtras().getString("idUsuario"));
 
+        dispararNotificaciones(this.getIdUsuario());
     }
 
-
+    public void dispararNotificaciones(String id){
+        String host = "http://192.168.1.7:8084";
+        URL ob = null;
+        int numero = 001;
+        NotificationManager notiManager =
+                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        try {
+            ob = new URL(host + "/WebApplication1/webresources/usuario/notificaciones/");
+            HttpURLConnection con = (HttpURLConnection) ob.openConnection();
+            con.setRequestMethod("POST");
+            con.setRequestProperty("Content-Type", "application/json");
+            con.setDoInput(true);
+            con.setDoOutput(true);
+            byte[] outputInBytes = id.getBytes("UTF-8");
+            OutputStream os = con.getOutputStream();
+            os.write(outputInBytes);
+            InputStream is = con.getInputStream();
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader br = new BufferedReader(isr);
+            StringBuilder sb = new StringBuilder();
+            String aux;
+            while ((aux = br.readLine()) != null) {
+                sb.append(aux);
+            }
+            String[] respuesta = sb.toString().split(";");
+            for (String str : respuesta){
+                String[] campos = str.split(",");
+                String body = "Pendiente: " + campos[1] + " - Para: " + campos[2];
+                NotificationCompat.Builder lanzador =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.jeringa)
+                        .setContentTitle("Vacunación de " + campos[0])
+                        .setContentText(body);
+                notiManager.notify(numero, lanzador.build());
+                numero++;
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
     private class obtenerHijos extends AsyncTask<Void, Void, Void> {
 
-        public String host = "http://192.168.0.19:8080";
+        public String host = "http://192.168.0.10:8084";
 
         @Override
         protected void onPreExecute() {
@@ -101,6 +156,7 @@ public class HijosActivity extends AppCompatActivity {
                     for (int i = 0; i < jsonObj.length(); i++) {
                         JSONObject c = jsonObj.getJSONObject(i);
 
+                        String id = c.getString("id");
                         String name = c.getString("nombre");
                         String email = c.getString("edad");
                         String address = c.getString("sexo");
@@ -117,6 +173,7 @@ public class HijosActivity extends AppCompatActivity {
 
                         // adding each child node to HashMap key => value
 
+                        contact.put("id", id);
                         contact.put("name", name);
                         contact.put("email", email);
                         contact.put("mobile", address);
@@ -168,8 +225,24 @@ public class HijosActivity extends AppCompatActivity {
                     R.layout.list_item, new String[]{"name", "email",
                     "mobile"}, new int[]{R.id.name,
                     R.id.email, R.id.mobile});
+            try {
+                lv.setAdapter(adapter);
+                // Se asigna la lógica para click sobre un elemento de la lista
+                // Se trae el id del hijo seleccionado para pasar a la sgte actividad
+                lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position,
+                                            long id) {
+                        Intent intent = new Intent(HijosActivity.this, VacunasHijo.class);
+                        HashMap<String, String> aux = contactList.get(position);
+                        String idHijo = aux.get("id");
+                        intent.putExtra("idHijo", idHijo);
+                        startActivity(intent);
+                    }
+                });
+            }catch (Exception e){
 
-            lv.setAdapter(adapter);
+            }
         }
 
     }
