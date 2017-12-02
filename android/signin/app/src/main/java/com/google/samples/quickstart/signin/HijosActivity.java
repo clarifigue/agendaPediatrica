@@ -47,7 +47,11 @@ public class HijosActivity extends AppCompatActivity {
         this.idUsuario = idUsuario;
     }
 
+<<<<<<< HEAD
     private static String url = "http://192.168.0.10:8084";
+=======
+    private static String url = "http://192.168.1.5:8084";
+>>>>>>> 2b73de028e59d0d2533dae76936c82176482fb69
 
 
 
@@ -115,7 +119,11 @@ public class HijosActivity extends AppCompatActivity {
 
     private class obtenerHijos extends AsyncTask<Void, Void, Void> {
 
+<<<<<<< HEAD
         public String host = "http://192.168.0.10:8084";
+=======
+        public String host = "http://192.168.1.5:8084";
+>>>>>>> 2b73de028e59d0d2533dae76936c82176482fb69
 
         @Override
         protected void onPreExecute() {
@@ -242,7 +250,16 @@ public class HijosActivity extends AppCompatActivity {
                 });
             }catch (Exception e){
 
+<<<<<<< HEAD
             }
+=======
+         try {
+             lv.setAdapter(adapter);
+         } catch (Exception e) {
+
+         }
+
+>>>>>>> 2b73de028e59d0d2533dae76936c82176482fb69
         }
 
     }

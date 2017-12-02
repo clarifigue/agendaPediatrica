@@ -49,7 +49,11 @@ public class SignInActivity extends AppCompatActivity implements
 
     private static final String TAG = "SignInActivity";
 
+<<<<<<< HEAD
     public String host = "http://192.168.0.10:8084";
+=======
+    public String host = "http://192.168.1.5:8084";
+>>>>>>> 2b73de028e59d0d2533dae76936c82176482fb69
 
     static{
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
